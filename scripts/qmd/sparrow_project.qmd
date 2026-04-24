@@ -100,3 +100,23 @@ kable(sum_stats, digits=1)
            y= "Number of fledglings\n per nest"),
     nrow= 1, ncol= 2, common.legend= T, labels= c("a)", "b)"))
 ```
+
+## Fit models
+
+### Formulate and compare
+
+```{r}
+#| label: tbl-fit-models
+#| tbl-cap: "Model comparison."
+
+# Fit binomial glms
+  glm.00<- glm(num_fledglings ~ 1, family= "poisson", clean)
+  glm.01<- glm(num_fledglings ~ insect_abundance + noise,
+               family= "poisson", clean)
+  glm.02<- glm(num_fledglings ~ insect_abundance * noise, 
+               family= "poisson", clean)
+
+# Compare models
+  kable(compare_performance(glm.00, glm.01, glm.02), digits= 3)
+
+```
