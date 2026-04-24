@@ -1,0 +1,6 @@
+variable	short_description	variable_type	values
+Number of Fledglings	Number of fledglings successfully raised per nest	numerical	whole numbers
+Insect Abundance (g/m2)	average inscet biomass (g/m2) near the nest	numerical	whole numbers
+Environmental noise (dB)	ambient noise (dB), reflecting anthropogenic disturbance	numerical	whole numbers
+abundance_warning	warning for interpreting values, marked with x	factorial	
+environment_warning	wanrning for interpreting values, marked with x	factorial	
