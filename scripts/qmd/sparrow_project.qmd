@@ -36,6 +36,7 @@ execute:
   library(performance)
   library(MuMIn)
   library(ggeffects)
+  library(tidyverse)
 
   library(knitr)  
 
@@ -105,6 +106,8 @@ kable(sum_stats, digits=1)
 
 ### Formulate and compare
 
+As seen in @tbl-fit-models further analysis with `glm.01` seems like the safest choice. This choice is based on the lowest AIC score and the highest Weight score.
+
 ```{r}
 #| label: tbl-fit-models
 #| tbl-cap: "Model comparison."
@@ -117,6 +120,32 @@ kable(sum_stats, digits=1)
                family= "poisson", clean)
 
 # Compare models
+  compare_performance(glm.00, glm.01, glm.02)
   kable(compare_performance(glm.00, glm.01, glm.02), digits= 3)
 
 ```
+
+### Validate preferred model
+
+```{r}
+#| label: diagnostics-overdispersion
+
+# First thing: check overdispersion
+  check_overdispersion(glm.01)
+```
+
+no overdispersion detected
+
+```{r}
+#| label: fig-diagnostic-plots
+#| fig-cap: "Model diagnostics"
+#| fig-width: !expr 25/2.54
+#| fig-height: !expr 30/2.54
+
+# Validate model
+  check_model(glm.01)
+```
+
+The diagnostic plot in @fig-diagnostic-plots does not look too bad.
+
+## Interpret preferred model
