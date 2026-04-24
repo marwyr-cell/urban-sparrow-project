@@ -7,3 +7,6 @@
 
 /.quarto/
 **/*.quarto_ipynb
+
+SpicySoup.qmd
+02c_Zebrafish_solution.r
