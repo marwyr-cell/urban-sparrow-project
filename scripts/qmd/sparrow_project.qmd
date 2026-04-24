@@ -137,7 +137,6 @@ As seen in @tbl-fit-models further analysis with `glm.01` seems like the safest 
                family= "poisson", clean)
 
 # Compare models
-  compare_performance(glm.00, glm.01, glm.02)
   kable(compare_performance(glm.00, glm.01, glm.02), digits= 3)
 
 ```
@@ -208,26 +207,43 @@ A negative binomial model did not improve model fit. Given that the Poisson mode
 
 # Objects to plot predictions -----------------------------------------------
 
-## Interaction plot -----
-  
-  # Create predictions dataframe
-  pred.int<- predict_response(glm.01,
-                              terms =c("insect_abundance","noise"))
-  
-  
-  # Create plot
-  pred.plot<- ggplot(pred.int, aes(x, predicted)) +
-    geom_ribbon(aes(ymin= conf.low, ymax= conf.high,
-                    fill= group), alpha= .2) +
-    geom_line(aes(col= group)) +
-    labs(x= expression("Insect abundance (g/" * m^2 *")"),
-         y= "Number of fledglings\n per nest", col= "noise", fill= "noise") +
-    coord_cartesian(ylim = c(0, max(pred.int$conf.high)))
+
+# Predictions for insect abundance
+pred_insect <- predict_response(glm.01, terms = "insect_abundance")
+
+p_insect <- ggplot(pred_insect, aes(x = x, y = predicted)) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high),
+              alpha = 0.2) +
+  geom_line(linewidth = 1) +
+  labs(x = "Insect abundance (g/m²)",
+       y = "Predicted number of fledglings\n per nest") +
+  theme_minimal()
+
+# Predictions for noise
+pred_noise <- predict_response(glm.01, terms = "noise")
+
+p_noise <- ggplot(pred_noise, aes(x = x, y = predicted)) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high),
+              alpha = 0.2) +
+  geom_line(linewidth = 1) +
+  labs(x = "Environmental noise (dB)",
+       y = "Predicted number of fledglings\n per nest") +
+  theme_minimal()
+
+prediction_plot <- ggarrange(
+  p_insect,
+  p_noise,
+  nrow = 1,
+  ncol = 2,
+  labels = c("a)", "b)")
+)
 ```
+
+\
 
 ```{r}
 #| label: tbl-glm
-#| tbl-cap: !expr paste("Estimates, associated standard errors and statistical significance of the parameters estimated by a poisson GLM.", "($R^2$=", r.2, ", $\\chi^2_{(", null.chi[2, 3], ",", null.chi[2, 1], ")}$=", round(null.chi[2,4], 3), ", $p$", format.pval(null.chi[2, 5], eps = 0.001), ")")
+#| tbl-cap: !expr paste("Estimates, associated standard errors and statistical significance of the parameters estimated by a poisson GLM.", "($R^2$=", r.2, ", $\\chi^2_{(", null.chi[2, 3], ",", null.chi[2, 1], ")}$=", round(null.chi[2,4], 3), ", $p$ =", null.chi[2, 5])"
 
 # Create table
   kable(coef.table)
@@ -240,5 +256,5 @@ A negative binomial model did not improve model fit. Given that the Poisson mode
 #| fig-height: !expr 9/2.54
 
 # Plot predictions
-  pred.plot
+  prediction_plot
 ```
