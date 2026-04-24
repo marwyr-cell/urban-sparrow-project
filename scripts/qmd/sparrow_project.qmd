@@ -83,9 +83,21 @@ kable(sum_stats, digits=1)
   ggpairs(clean[, c("num_fledglings", "insect_abundance", "noise")])
 ```
 
+Looking at @fig-raw-data following assumptions can be made:
+
+a\) Insect abundance (left panel)
+
+There is a clear positive relationship between insect abundance and number of fledglings. This leads to the interpretation that higher food availability is associated with increased reproductive success.
+
+The confidence band broadens at higher values meaning more uncertainty probably because of fewer observations.
+
+b\) Environmental noise (right panel)
+
+There is a clear negative relationship between environmental noise and number of fledglings. This fact leads to the interpretation that higher environmental noise is associated with reduced reproductive success.
+
 ```{r}
 #| label: fig-raw-data
-#| fig-cap: expr! paste("The number of fledglings per nest plotted against the two independent variables (a) insect abundance (g/$m^2$), and b) environmental noise).")
+#| fig-cap: !expr paste("The number of fledglings per nest plotted against the two independent variables (a) insect abundance (g/$m^2$), and b) environmental noise).")
 #| fig-width: !expr 16/2.54
 #| fig-height: !expr 9/2.54
 #| code-fold: true
@@ -104,6 +116,8 @@ kable(sum_stats, digits=1)
            y= "Number of fledglings\n per nest"),
     nrow= 1, ncol= 2, common.legend= T, labels= c("a)", "b)"))
 ```
+
+The non-linear nature of both relationships (curvature) supports the use of a generalized linear model rather than simple linear regression.
 
 ## Fit models
 
@@ -132,6 +146,7 @@ As seen in @tbl-fit-models further analysis with `glm.01` seems like the safest 
 
 ```{r}
 #| label: diagnostics-overdispersion
+#| code-fold: true
 
 # First thing: check overdispersion
   check_overdispersion(glm.01)
@@ -178,6 +193,7 @@ A negative binomial model did not improve model fit. Given that the Poisson mode
 ```{r}
 #| label: interpret-objects
 #| output: false
+#| code-fold: true
 
 # Objects to construct table ------------------------------------------------
 
