@@ -84,13 +84,11 @@ kable(sum_stats, digits=1)
   ggpairs(clean[, c("num_fledglings", "insect_abundance", "noise")])
 ```
 
-Looking at @fig-raw-data following assumptions can be made:
+Looking at @fig-raw-data following assumptions were made:
 
 a\) Insect abundance (left panel)
 
 There is a clear positive relationship between insect abundance and number of fledglings. This leads to the interpretation that higher food availability is associated with increased reproductive success.
-
-The confidence band broadens at higher values meaning more uncertainty probably because of fewer observations.
 
 b\) Environmental noise (right panel)
 
@@ -166,14 +164,13 @@ No overdispersion in the data detected.
 
 ```
 
-The diagnostic plot in @fig-diagnostic-plots indicates a mismatch between observed and expected variance, suggesting underdispersion in the data. For validation purposes another model is being checked. Instead of a Poisson model negative binomial model is tested.
+The diagnostic plot in @fig-diagnostic-plots indicates a mismatch between observed and expected variance, suggesting that there could be a more suitable model. For validation purposes another model is being checked.
 
 ```{r}
 #| label: fig-diagnostic-plots-2
 #| fig-cap: "Model diagnostics"
 #| fig-width: !expr 25/2.54
 #| fig-height: !expr 30/2.54
-#| echo: false
 #| output: false
 
 library(MASS)
@@ -191,6 +188,8 @@ check_model(glm.nb.01)
 A negative binomial model did not improve model fit. Given that the Poisson model remained the best-performing model based on AIC and the alternative model did not provide improvement, the Poisson GLM was kept for further analysis.
 
 ## Interpret preferred model
+
+To facilitate later interpretation, objects were constructed and predictive values were created.
 
 ```{r}
 #| label: interpret-objects
@@ -243,6 +242,7 @@ prediction_plot <- ggarrange(
 ```
 
 \
+For the start of the interpretation a Summary was generated, of which the results are depicted in @tbl-glm.
 
 ```{r}
 #| label: tbl-glm
@@ -251,6 +251,10 @@ prediction_plot <- ggarrange(
 # Create table
   kable(coef.table)
 ```
+
+A Poisson Generalized Linear Model (R² = `r r.2`, `r paste0("$\\chi^2_{(", null.chi[2,3], ",", null.chi[2,1], ")}$")` = `r round(null.chi[2, 4], 3)`, p = `r format.pval(null.chi[2, 5], eps = 0.001)`) performed significantly better than a null model comprising an intercept only.
+
+To visualize the predictions and the raw data a prediction plot was created. Since the preferred model was the one without interaction term, the two predicitve variables were plotted against the outcome variable separately.
 
 ```{r}
 #| label: fig-predict
@@ -262,7 +266,7 @@ prediction_plot <- ggarrange(
   prediction_plot
 ```
 
-A Poisson Generalized Linear Model (R² = `r r.2`, `r paste0("$\\chi^2_{(", null.chi[2,3], ",", null.chi[2,1], ")}$")` = `r round(null.chi[2, 4], 3)`, p = `r format.pval(null.chi[2, 5], eps = 0.001)`) performed significantly better than a null model comprising an intercept only.
+### Interpretation of the prediction plot
 
 Insect abundance had a significant positive effect on the number of fledglings per nest (β = `r round(coef.table["insect_abundance", 1], 3)`, SE = `r round(coef.table["insect_abundance", 2], 3)`, z = `r round(coef.table["insect_abundance", 3], 3)`, p = `r round(coef.table["insect_abundance", 4], 3)`), indicating that higher food availability is associated with increased reproductive success.
 
