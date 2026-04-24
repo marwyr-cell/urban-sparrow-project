@@ -24,7 +24,7 @@ execute:
 
 ## Prepare Session
 
-For this exercise all the code will be available either directly or folded.
+For this exercise all the code will be available.
 
 ```{r}
 #| label: prepare-session
@@ -166,13 +166,15 @@ No overdispersion in the data detected.
 
 ```
 
-The diagnostic plot in @fig-diagnostic-plots indicates a mismatch between observed and expected variance, suggesting underdispersion in the data. For validation purposes another model is being checked. Instead of a Poisson model negative binomial (@fig-diagnostic-plot-2) model is tested.
+The diagnostic plot in @fig-diagnostic-plots indicates a mismatch between observed and expected variance, suggesting underdispersion in the data. For validation purposes another model is being checked. Instead of a Poisson model negative binomial model is tested.
 
 ```{r}
 #| label: fig-diagnostic-plots-2
 #| fig-cap: "Model diagnostics"
 #| fig-width: !expr 25/2.54
 #| fig-height: !expr 30/2.54
+#| echo: false
+#| output: false
 
 library(MASS)
 
