@@ -1,13 +1,14 @@
 ---
-title: "sparrow_project"
+title: "Urban Sparrows"
 date: today
+author: Marie Wyrsch
 
 toc: true
 abstract-title: "Research question:"
 abstract: "How do insect abundance and ambient noise levels affect the number of fledglings per nest in house sparrows?"
 
 format:
-  html:
+  pdf:
     embed-resources: true
     number-sections: true
     code-fold: true
