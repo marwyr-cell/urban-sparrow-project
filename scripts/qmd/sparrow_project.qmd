@@ -85,7 +85,7 @@ kable(sum_stats, digits=1)
 
 ```{r}
 #| label: fig-raw-data
-#| fig-cap: "The number of fledglings per nest plotted against the two independent variables (a) insect abundance (g/m^2), and b) environmental noise)."
+#| fig-cap: expr! paste("The number of fledglings per nest plotted against the two independent variables (a) insect abundance (g/$m^2$), and b) environmental noise).")
 #| fig-width: !expr 16/2.54
 #| fig-height: !expr 9/2.54
 #| code-fold: true
@@ -137,7 +137,7 @@ As seen in @tbl-fit-models further analysis with `glm.01` seems like the safest 
   check_overdispersion(glm.01)
 ```
 
-no overdispersion detected
+No overdispersion in the data detected.
 
 ```{r}
 #| label: fig-diagnostic-plots
@@ -151,7 +151,7 @@ no overdispersion detected
 
 ```
 
-The diagnostic plot in @fig-diagnostic-plots does not look too bad.
+The diagnostic plot in @fig-diagnostic-plots indicates a mismatch between observed and expected variance, suggesting underdispersion in the data. For validation purposes another model is being checked. Instead of a Poisson model negative binomial (\@fig-diagnostic-plots-2) model is tested.
 
 ```{r}
 #| label: fig-diagnostic-plots-2
@@ -170,6 +170,8 @@ check_model(glm.nb.01)
 
 
 ```
+
+A negative binomial model did not improve model fit. Given that the Poisson model remained the best-performing model based on AIC and the alternative model did not provide improvement, the Poisson GLM was kept for further analysis.
 
 ## Interpret preferred model
 
