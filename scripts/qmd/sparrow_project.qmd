@@ -1,26 +1,102 @@
 ---
 title: "sparrow_project"
-format: html
+date: today
+
+toc: true
+abstract-title: "Research question:"
+abstract: "How do insect abundance and ambient noise levels affect the number of fledglings per nest in house sparrows?"
+
+format:
+  html:
+    embed-resources: true
+    number-sections: true
+    code-fold: show
+
 editor: visual
+editor_options:
+  chunk_output_type: console
+
+execute:
+  warning: false
+  message: false
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+## Prepare Session
 
 ```{r}
-1 + 1
+#| label: prepare-session
+#| code-fold: false
+
+
+#importing libraries
+  library(pastecs)
+  library(ggplot2)
+  library(ggpubr); theme_set(theme_bw())
+  library(GGally)
+  library(performance)
+  library(MuMIn)
+  library(ggeffects)
+
+  library(knitr)  
+
+#import data
+
+library(here)
+
+clean <- read_delim(
+  here("data", "processed", "clean.csv"),
+  delim = ";",
+  escape_double = FALSE,
+  trim_ws = TRUE
+)
+
+
 ```
 
-You can add options to executable code like this
+## Explore Data
+
+### Numerically
 
 ```{r}
-#| echo: false
-2 * 2
+#| label: tbl-explore-data
+#| tbl-cap: "Descriptive statistics for the variables of interest."
+#| code-fold: true
+
+sum_stats<-
+   stat.desc(clean[, c("num_fledglings", "insect_abundance", "noise")], norm= T)
+
+kable(sum_stats, digits=1)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+### Graphically
+
+```{r}
+#| label: fig-scatterplot-matrix
+#| fig-cap: "Scatterplopt matrix of the sparrow data"
+#| output: true
+
+# Scatterplot matrix
+  ggpairs(clean[, c("num_fledglings", "insect_abundance", "noise")])
+```
+
+```{r}
+#| label: fig-raw-data
+#| fig-cap: "The number of fledglings per nest plotted against the two independent variables (a) insect abundance, and b) environmental noise)."
+#| fig-width: !expr 16/2.54
+#| fig-height: !expr 9/2.54
+#| code-fold: true
+
+# Draw a graph that captures the research question
+  ggarrange(
+    ggplot(clean, aes(insect_abundance, num_fledglings)) +
+      geom_smooth(method= glm, method.args= list(family= "poisson"),
+                  col= "black") +
+      labs(x= expression("insect abundance (g/m^2)"),
+           y= "number of fledglings\n per nest "),
+    ggplot(clean, aes(noise, num_fledglings)) +
+      geom_smooth(method= glm, method.args= list(family= "poisson"),
+                  col= "black") +
+      labs(x= "Environmental noise (dB)",
+           y= "Number of fledglings\n per nest"),
+    nrow= 1, ncol= 2, common.legend= T, labels= c("a)", "b)"))
+```
