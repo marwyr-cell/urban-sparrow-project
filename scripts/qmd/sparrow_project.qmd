@@ -149,3 +149,46 @@ no overdispersion detected
 The diagnostic plot in @fig-diagnostic-plots does not look too bad.
 
 ## Interpret preferred model
+
+```{r}
+#| label: interpret-objects
+#| output: false
+
+# Objects to construct table ------------------------------------------------
+
+## Coefficients, SE, z and p -----
+  coef.table<- round(summary(glm.01)$coefficients, 3)
+
+## Approximate R2 -----
+  r.2<- round(attributes(r.squaredLR(glm.01))$adj.r.squared, 3)  
+
+## Compare performance to null-model -----
+  null.chi<- anova(glm.00, glm.01)
+
+# Objects to plot predictions -----------------------------------------------
+
+## Interaction plot -----
+  
+  # Create predictions dataframe
+  pred.int<- predict_response(glm.01,
+                              terms =c("insect_abundance","noise"))
+  
+  
+  # Create plot
+  pred.plot<- ggplot(pred.int, aes(x, predicted)) +
+    geom_ribbon(aes(ymin= conf.low, ymax= conf.high,
+                    fill= group), alpha= .2) +
+    geom_line(aes(col= group)) +
+    labs(x= "Insect abundance (g/m^2)",
+         y= "Number of fledglings\n per nest", col= "noise", fill= "noise") +
+    coord_cartesian(ylim = c(0, max(pred.int$conf.high)))
+pred.plot
+```
+
+```{r}
+#| label: tbl-glm
+#| tbl-cap: !expr paste("Estimates, associated standard errors and statistical significance of the parameters estimated by a poisson GLM.", "($R^2$=", r.2, ", $\\chi^2_{(", null.chi[2, 3], ",", null.chi[2, 1], ")}$=", round(null.chi[2,4], 3), ", $p$", format.pval(null.chi[2, 5], eps = 0.001), ")")
+
+# Create table
+  kable(coef.table)
+```
