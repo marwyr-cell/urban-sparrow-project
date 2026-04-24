@@ -23,9 +23,11 @@ execute:
 
 ## Prepare Session
 
+For this exercise all the code will be available either directly or folded.
+
 ```{r}
 #| label: prepare-session
-#| code-fold: false
+#| code-fold: true
 
 
 #importing libraries
@@ -74,7 +76,8 @@ kable(sum_stats, digits=1)
 ```{r}
 #| label: fig-scatterplot-matrix
 #| fig-cap: "Scatterplopt matrix of the sparrow data"
-#| output: true
+#| output: false
+#| code-fold: true
 
 # Scatterplot matrix
   ggpairs(clean[, c("num_fledglings", "insect_abundance", "noise")])
@@ -82,7 +85,7 @@ kable(sum_stats, digits=1)
 
 ```{r}
 #| label: fig-raw-data
-#| fig-cap: "The number of fledglings per nest plotted against the two independent variables (a) insect abundance, and b) environmental noise)."
+#| fig-cap: "The number of fledglings per nest plotted against the two independent variables (a) insect abundance (g/m^2), and b) environmental noise)."
 #| fig-width: !expr 16/2.54
 #| fig-height: !expr 9/2.54
 #| code-fold: true
@@ -92,7 +95,7 @@ kable(sum_stats, digits=1)
     ggplot(clean, aes(insect_abundance, num_fledglings)) +
       geom_smooth(method= glm, method.args= list(family= "poisson"),
                   col= "black") +
-      labs(x= expression("insect abundance (g/m^2)"),
+      labs(x= expression("insect abundance (g/" * m^2 * ")"),
            y= "number of fledglings\n per nest "),
     ggplot(clean, aes(noise, num_fledglings)) +
       geom_smooth(method= glm, method.args= list(family= "poisson"),
@@ -144,9 +147,29 @@ no overdispersion detected
 
 # Validate model
   check_model(glm.01)
+
+
 ```
 
 The diagnostic plot in @fig-diagnostic-plots does not look too bad.
+
+```{r}
+#| label: fig-diagnostic-plots-2
+#| fig-cap: "Model diagnostics"
+#| fig-width: !expr 25/2.54
+#| fig-height: !expr 30/2.54
+
+library(MASS)
+
+glm.nb.01 <- glm.nb(num_fledglings ~ insect_abundance + noise,
+                    data = clean)
+
+compare_performance(glm.01, glm.nb.01)
+
+check_model(glm.nb.01)
+
+
+```
 
 ## Interpret preferred model
 
@@ -179,10 +202,9 @@ The diagnostic plot in @fig-diagnostic-plots does not look too bad.
     geom_ribbon(aes(ymin= conf.low, ymax= conf.high,
                     fill= group), alpha= .2) +
     geom_line(aes(col= group)) +
-    labs(x= "Insect abundance (g/m^2)",
+    labs(x= expression("Insect abundance (g/" * m^2 *")"),
          y= "Number of fledglings\n per nest", col= "noise", fill= "noise") +
     coord_cartesian(ylim = c(0, max(pred.int$conf.high)))
-pred.plot
 ```
 
 ```{r}
@@ -191,4 +213,14 @@ pred.plot
 
 # Create table
   kable(coef.table)
+```
+
+```{r}
+#| label: fig-predict
+#| fig-cap: "Raw data and model predictions to visualize the relationship between the number of sparrow fledglings per nest, and the insect abundance and environmental noise."
+#| fig-width: !expr 15/2.54
+#| fig-height: !expr 9/2.54
+
+# Plot predictions
+  pred.plot
 ```
