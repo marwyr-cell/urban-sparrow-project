@@ -1,4 +1,4 @@
-Number of Fledglings;Insect Abundance (g/m2);Environmental noise (dB);abundance_warning;environment_warning
+num_fledglings;insect_abundance;noise;abundance_warning;environment_warning
 5;9;52;;
 6;13;61;;
 4;7;68;;

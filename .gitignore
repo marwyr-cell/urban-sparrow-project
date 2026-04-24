@@ -3,3 +3,7 @@
 .RData
 .DS_Store
 *.log
+.positai
+
+/.quarto/
+**/*.quarto_ipynb

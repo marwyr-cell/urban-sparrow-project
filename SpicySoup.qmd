@@ -1,0 +1,360 @@
+---
+title: "Hot'n Spicy Soup..."
+author: "Erik"
+date: today
+
+toc: true
+abstract-title: "Research question:"
+abstract: "Do spiciness and serving temperature of soup affect the immune response of hospital patients?"
+
+format:
+  html:
+    embed-resources: true
+    number-sections: true
+    code-fold: show
+
+editor: visual
+editor_options:
+  chunk_output_type: console
+
+execute:
+  warning: false
+  message: false
+---
+
+<!--# Line 29 in code chunk "interpret-objects" requires manual updating (with the values calculated in line 23 of the same code chunk) if data ever change -->
+
+\
+
+## Prepare session
+
+Load the required libraries, import, screen and correct the data.
+
+::: callout-important
+## Location matters!
+
+Notice that since we are working in a normal RStudio project (*i.e.* *not* a Quarto project), we have to [**use pathnames relative to the location of the** `.qmd`**-file**]{style="color: darkred"} (to import data, for example) [**to render the output**]{style="color: darkred"} document. In contrast, [**executing code chunks whilst working on the** `.qmd`**-file in our normal R-session**, **pathnames are expected to be relative to the location of the** `.Rproj`**-file**]{style="color: darkblue"}**🙄**.
+
+Moreover, we [**cannot specify a sub-folder in which to save the output**]{style="color: lightblue"} in a regular RStudio project: our HTML-file is simply saved in the same directory as the `.qmd`-file.
+
+This behaviour is quite inconvenient, as it messes up the file and folder structure of our project! To take more control over our workflow then, we need to delve a little deeper into Quarto-projects and the additional configuration files they create. We will look at exactly this during the lecture this morning.
+:::
+
+\
+
+```{r}
+#| label: prepare-session
+
+# Load packages
+  library(pastecs)
+  library(ggpubr); theme_set(theme_bw())
+  library(GGally)
+  library(performance)
+  library(MuMIn)
+  library(ggeffects)
+
+  library(knitr)                                     # To render tables
+
+# Import data
+  soup<- read.csv("../../Data/Raw/SpicySoup.csv")    # Note: path is relative
+                                                     # to the qmd-file: to
+                                                     # render the project
+
+# Add an additional column to express the proportion of success in each batch of trials
+  soup$prop<- soup$successes/soup$n_trials
+
+```
+
+\
+
+## Explore the data
+
+It's always a good idea to get to know your data, both by exploring them numerically and graphically. Since I asked you to write the units of the variables in the main text (because one of them contains a Greek letter), let's give that a go:
+
+-   spice concentration is measured in $\mu$*g/mL*
+-   serving temperature is measured in °C
+
+### Numerically
+
+Let's assume I don't want to show any code for the data numeric exploration step in my report. I can achieve this by specifying `#| echo: false` in the code chunk.
+
+```{r}
+#| label: tbl-explore-data
+#| tbl-cap: "Descriptive statistics for the variables of interest."
+#| echo: false
+
+# Numerically
+ sum_stats<-
+   stat.desc(soup[, c("prop", "n_trials", "spice", "temp")], norm= T)
+ 
+ kable(sum_stats, digits= 1)
+ 
+```
+
+### Graphically
+
+Now, let's do the opposite for the scatterplot matrix. I want to show the code, but not its output: set `#| output: false`.
+
+```{r}
+#| label: fig-scatterplot-matrix
+#| fig-cap: "Scatterplopt matrix of the soup data."
+#| output: false
+
+# Scatterplot matrix
+  ggpairs(soup[, c("prop", "n_trials", "spice", "temp")])
+ 
+```
+
+I do, however, want to show both code and output for a more customized plot of the raw data, but since the code chunk is quite long, I set it to by folded by default: `#| code-fold: true`.
+
+```{r}
+#| label: fig-raw-data
+#| fig-cap: "The proportion of successes plotted against the two independent variables (a) spiciness, and b) serving temperature)."
+#| fig-width: !expr 16/2.54
+#| fig-height: !expr 9/2.54
+#| code-fold: true
+
+# Draw a graph that captures the research question
+  ggarrange(
+    ggplot(soup, aes(spice, prop)) +
+      geom_point(aes(size= n_trials), alpha= .4, col= "blue") +
+      geom_smooth(method= glm, method.args= list(family= "binomial"),
+                  col= "black") +
+      labs(x= expression("Spiciness (" * mu * "g/ml)"),
+           y= "Proportion of patients with\n enhanced immune repsonse",
+           size= "Trial size"),
+    ggplot(soup, aes(temp, prop)) +
+      geom_point(aes(size= n_trials), alpha= .4, col= "blue") +
+      geom_smooth(method= glm, method.args= list(family= "binomial"),
+                  col= "black") +
+      labs(x= "Serving temperature (°C)",
+           y= "Proportion of patients with\n enhanced immune repsonse",
+           size= "Trial size"),
+    nrow= 1, ncol= 2, common.legend= T, labels= c("a)", "b)"))
+
+```
+
+\
+
+## Fit models
+
+### Formulate and compare
+
+Now it's time to fit and compare some models (@tbl-fit-models). With these data, it is quite difficult to decide which model to prefer, however, since the hypothesis involved an interaction term, lets continue with that model, `glm.02`.
+
+```{r}
+#| label: tbl-fit-models
+#| tbl-cap: "Model comparison."
+
+# Fit binomial glms
+  glm.00<- glm(prop~ 1, weights= n_trials, family= "binomial", soup)
+  glm.01<- glm(prop~ spice + temp, weights= n_trials,
+               family= "binomial", soup)
+  glm.02<- glm(prop~ spice * temp, weights= n_trials,
+               family= "binomial", soup)
+
+# Compare models
+  kable(compare_performance(glm.00, glm.01, glm.02), digits= 3)
+
+```
+
+\
+
+### Validate the preferred model
+
+Great, we've decided on "the best" model given the data at hand, but it might still be a bad fit to our data. Let's make sure we can trust our selected model first, before we try to interpret it.
+
+```{r}
+#| label: diagnostics-overdispersion
+
+# First thing: check overdispersion
+  check_overdispersion(glm.02)
+
+```
+
+No problem with overdispersion! See how we can include raw output from the R-console into our rendered output document as well?!
+
+```{r}
+#| label: fig-diagnostic-plots
+#| fig-cap: "Model diagnostics: these look pretty good "
+#| fig-width: !expr 25/2.54
+#| fig-height: !expr 30/2.54
+
+# Validate model
+  check_model(glm.02)
+  
+# Collinearity check on model without interaction
+  # plot(check_collinearity(glm.01))                            # Looks good!
+
+```
+
+Other model assumptions seem tenable as well 🥳!
+
+Note that since collinearity is best assessed in a model without interaction term, I quickly checked for this whilst writing the code. WHen it came to rendering the report, however, I decided to "comment it out".
+
+\
+
+## Interpret model
+
+In this section, we are going to create a table, a graph and use inline code to report our findings. Let's create a bunch of objects first, that we can then refer to when writing our findings down. I find that inline coding in particular, gets much easier this way (but I still hardly ever get it right the first time around 🙄!).
+
+\
+
+::: callout-important
+## Making notes to yourself
+
+Should a code chunk contain code that requires manual updating if the dataset ever changes (the `predict_response()` function of the `ggeffects` package in the code chunk below is under active development, and quite clunky when it comes to plotting interactions between two (or more) continuous variables): make sure to let yourself (and your collaborators) know!
+
+Inserting HTML-comments (`Ctrl + Shift + c`) at the top of your `.qmd`-file, where you and your collaborators are likely to see them right away, is one way to flag-up such issues, without affecting the output report.
+:::
+
+\
+
+```{r}
+#| label: interpret-objects
+#| output: false
+
+# Objects to construct table ------------------------------------------------
+
+## Coefficients, SE, z and p -----
+  coef.table<- round(summary(glm.02)$coefficients, 3)
+
+## Approximate R2 -----
+  r.2<- round(attributes(r.squaredLR(glm.02))$adj.r.squared, 3)  
+
+## Compare performance to null-model -----
+  null.chi<- anova(glm.00, glm.02)
+
+# Objects to plot predictions -----------------------------------------------
+
+## Interaction plot -----
+  # Create vector of values for x-axis (to get smooth lines) 
+  t.vec<- seq(min(soup$temp), max(soup$temp), length.out= 100)
+  
+  # Calculate min, mean max for colour coding of spice at min, mean, max
+  summary(soup$spice)       # The min, mean and max need to be entered by
+                            # hand in the predict_response() function below!
+  
+  # Create predictions dataframe
+  pred.int<- predict_response(glm.02,
+                              c("temp [t.vec]",
+                                "spice [0.1, 4.06, 7.9]"))
+  # Assign text labels to the three spice groups
+  levels(pred.int$group)<- c("min", "mean", "max")
+  
+  # Create plot
+  pred.plot<- ggplot(pred.int, aes(x, predicted)) +
+    geom_point(data= soup, aes(temp, prop, size= n_trials), alpha= .4) +
+    geom_ribbon(aes(ymin= conf.low, ymax= conf.high,
+                    fill= group), alpha= .2) +
+    geom_line(aes(col= group)) +
+    labs(x= "Serving temperature\n of the soup (°C)",
+         y= "Proportion of patients with\n enhanced immune response",
+         size= "Trial size", col= "Spiciness", fill= "Spiciness") +
+    coord_cartesian(ylim= c(0, 1))
+  
+```
+
+\
+Okay, we now have things in place to start writing: buckle up, it's gonna get tricky! First, let's create the summary table.
+
+```{r}
+#| label: tbl-glm
+#| tbl-cap: !expr paste("Estimates, associated standard errors and statistical significance of the parameters estimated by a binomial GLM.", "($R^2$=", r.2, ", $\\chi^2_{(", null.chi[2, 3], ",", null.chi[2, 1], ")}$=", round(null.chi[2,4], 3), ", $p$", format.pval(null.chi[2, 5], eps = 0.001), ")")
+
+# Create table
+  kable(coef.table)
+
+```
+
+\
+
+A binomial Generalized Linear Model (*R*^2^= `r r.2` , `r paste("$\\chi^2_{(", null.chi[2,3], ",", null.chi[2,1], ")}$")`= `r round(null.chi[2, 4], 3)` , *p*`r format.pval(null.chi[2, 5], eps= 0.001)`; @tbl-glm) performed significantly better than a null-model, comprising an intercept only. However, the model generated no compelling support for the hypothesized interaction effect between spiciness and temperature of the soup ($\beta_{spice:temp}$= `r round(coef.table[4, 1], 3)` , *SE*= `r round(coef.table[4, 2], 3)` , *z*= `r round(coef.table[4, 3], 3)`, *p*= `r round(coef.table[4,  4], 3)`) on the patients' immune response. This findings is corroborated by @fig-predict, in which we see that, as spiciness increases, there is no noticeable change in the slope of the effect of temperature.\
+\
+
+```{r}
+#| label: fig-predict
+#| fig-cap: "Raw data and model predictions to visualize the relationship between the propotion of patients that exhibited an elevated immune response, and the temperature and spicyness of the soup."
+#| fig-width: !expr 15/2.54
+#| fig-height: !expr 9/2.54
+
+# Plot predictions
+  pred.plot
+
+```
+
+## Random bonus material
+
+Below I showcase some of the additional elements we saw in the lecture, that you can add to a `.qmd`-document:
+
+### Insert a mathematical equation
+
+Insert an equation, *e.g.* for the covariance between two random variables $X$ and $Y$:
+
+$$
+\operatorname{Cov}(X, Y) =
+\frac{\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})}{n - 1}
+$$ {#eq-covariance}
+
+Refer to @eq-covariance in the same way as you would cross-reference a table of figure.
+
+### Insert code chunk in "non-R" language
+
+#### Python
+
+```{python}
+#| label: python-code-chunk
+
+# Have Python print some text to the console
+print("Hello Python!")
+
+```
+
+#### Bash
+
+For Bash, we even have two options.
+
+##### Option 1
+
+Bash-scripts only get executed when rendering the report. It is not possible to directly execute Bash code chunks in R by pressing the "Run Current Chunk" button, or pressing `Ctrl + Enter` (also notice that we don't get the 3 little icons in the top-right corner of the code chunk in our `.qmd`-file). The reason for this is that Bash runs as a system process, and has no "notebook engine" (which the reticulate-package provides for Python) associated with it in the RStudio IDE.
+
+```{bash}
+#| label: Execute Bash-code
+
+# Have Bash print some text to the console
+echo "Hello Bash!"
+  
+```
+
+\
+
+##### Option 2
+
+Perhaps surprisingly, Bash-scripts *can be run from within an R-code chunk* 🤯 by using the `system()` function. If nested within the `cat()` function, R line-numbering are suppressed in the rendered output. This approach, however, is fairly limited, and it is more stable/robust to work directly within the Bash terminal, *e.g.* by writing commands in a dedicated Shell-script, like we did last week.
+
+```{r}
+#| label: Execute Bash-code directly in R
+
+# Run Bash directly within an R code chunk
+system("whoami", intern= T)       # To render the bash-output in the output, we add "intern= T"
+
+cat(system("ls -lah", intern= T), sep= "\n") # We get an accidental sneak-peek of the files that are temporarily created during the rendering of the output!
+
+```
+
+\
+
+### Insert an image
+
+Finally, and just because we can, a photo of our scientific intervention device (@fig-spicy-soup).
+
+```{r}
+#| label: fig-spicy-soup
+#| fig-cap: "An image I knicked from the internet."
+#| out-width: "10cm"
+#| echo: false
+
+# Let's include an image
+  include_graphics("../../Images/Spicy-Soup.png")
+
+```
