@@ -10,7 +10,7 @@ format:
   html:
     embed-resources: true
     number-sections: true
-    code-fold: show
+    code-fold: true
 
 editor: visual
 editor_options:
@@ -165,7 +165,7 @@ No overdispersion in the data detected.
 
 ```
 
-The diagnostic plot in @fig-diagnostic-plots indicates a mismatch between observed and expected variance, suggesting underdispersion in the data. For validation purposes another model is being checked. Instead of a Poisson model negative binomial (\@fig-diagnostic-plots-2) model is tested.
+The diagnostic plot in @fig-diagnostic-plots indicates a mismatch between observed and expected variance, suggesting underdispersion in the data. For validation purposes another model is being checked. Instead of a Poisson model negative binomial (@fig-diagnostic-plot-2) model is tested.
 
 ```{r}
 #| label: fig-diagnostic-plots-2
@@ -243,7 +243,7 @@ prediction_plot <- ggarrange(
 
 ```{r}
 #| label: tbl-glm
-#| tbl-cap: !expr paste("Estimates, associated standard errors and statistical significance of the parameters estimated by a poisson GLM.", "($R^2$=", r.2, ", $\\chi^2_{(", null.chi[2, 3], ",", null.chi[2, 1], ")}$=", round(null.chi[2,4], 3), ", $p$ =", null.chi[2, 5])"
+#| tbl-cap: !expr paste("Estimates, associated standard errors and statistical significance of the parameters estimated by a poisson GLM.", "($R^2$=", r.2, ", $\\chi^2_{(", null.chi[2, 3], ",", null.chi[2, 1], ")}$=", round(null.chi[2,4], 3), ", $p$", format.pval(null.chi[2, 5], eps = 0.001), ")")
 
 # Create table
   kable(coef.table)
@@ -257,4 +257,20 @@ prediction_plot <- ggarrange(
 
 # Plot predictions
   prediction_plot
+```
+
+A Poisson Generalized Linear Model (R² = `r r.2`, `r paste0("$\\chi^2_{(", null.chi[2,3], ",", null.chi[2,1], ")}$")` = `r round(null.chi[2, 4], 3)`, p = `r format.pval(null.chi[2, 5], eps = 0.001)`) performed significantly better than a null model comprising an intercept only.
+
+Insect abundance had a significant positive effect on the number of fledglings per nest (β = `r round(coef.table["insect_abundance", 1], 3)`, SE = `r round(coef.table["insect_abundance", 2], 3)`, z = `r round(coef.table["insect_abundance", 3], 3)`, p = `r round(coef.table["insect_abundance", 4], 3)`), indicating that higher food availability is associated with increased reproductive success.
+
+In contrast, environmental noise showed a small negative effect, but this was not statistically significant (β = `r round(coef.table["noise", 1], 3)`, SE = `r round(coef.table["noise", 2], 3)`, z = `r round(coef.table["noise", 3], 3)`, p = `r round(coef.table["noise", 4], 3)`), suggesting no strong evidence for an effect of noise on fledgling number in this dataset.
+
+These patterns are reflected in @fig-predict, where predicted fledgling numbers increase with insect abundance but show only a weak decline with increasing environmental noise.
+
+## Store session information
+
+```{r}
+#| label: session_info
+#| output: false
+sessionInfo()
 ```
